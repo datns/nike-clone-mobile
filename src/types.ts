@@ -1,5 +1,5 @@
 export interface Product {
-  id: string;
+  _id: string;
   image: string;
   images: string[];
   name: string;
@@ -12,4 +12,12 @@ export interface CartItem {
   product: Product;
   quantity: number;
   size: number;
+}
+
+export interface Order {
+  items: CartItem[];
+  ref: string;
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
 }

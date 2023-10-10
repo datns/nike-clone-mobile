@@ -1,5 +1,8 @@
 export type MainStackParamList = {
   Products: undefined;
-  ProductDetail: undefined;
+  ProductDetail: {
+    id: string;
+  };
   ShoppingCart: undefined;
+  TrackOrder: undefined;
 };

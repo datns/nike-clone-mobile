@@ -13,16 +13,16 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {MainStackParamList} from '../navigator/types';
-import {useAppDispatch, useAppSelector} from '../hooks';
-import {selectSelectedProduct} from '../store/productSlice';
+import {useAppDispatch} from '../hooks';
 import {addCartItem} from '../store/cartSlice';
+import {useGetProductQuery} from '../store/apiSlice';
 
 interface ProductDetailScreenProps
   extends NativeStackScreenProps<MainStackParamList, 'ProductDetail'> {}
 
-const ProductDetailScreen = ({navigation}: ProductDetailScreenProps) => {
-  const selectedProduct = useAppSelector(selectSelectedProduct);
+const ProductDetailScreen = ({navigation, route}: ProductDetailScreenProps) => {
   const dispatch = useAppDispatch();
+  const {data, isLoading, error} = useGetProductQuery(route.params.id);
 
   const {width} = useWindowDimensions();
 
@@ -30,12 +30,12 @@ const ProductDetailScreen = ({navigation}: ProductDetailScreenProps) => {
     return <Image source={{uri: item}} style={[styles.image, {width}]} />;
   };
 
-  if (!selectedProduct) {
+  if (!data?.data) {
     return null;
   }
 
   const addToCart = () => {
-    dispatch(addCartItem(selectedProduct));
+    dispatch(addCartItem(data.data));
   };
 
   return (
@@ -43,7 +43,7 @@ const ProductDetailScreen = ({navigation}: ProductDetailScreenProps) => {
       <ScrollView>
         {/*Image Carousel*/}
         <FlatList
-          data={selectedProduct.images}
+          data={data?.data.images}
           renderItem={renderCarouselItem}
           horizontal
           pagingEnabled
@@ -51,18 +51,18 @@ const ProductDetailScreen = ({navigation}: ProductDetailScreenProps) => {
         />
         <View style={{padding: 20}}>
           {/* Title */}
-          <Text style={styles.title}>{selectedProduct.name}</Text>
+          <Text style={styles.title}>{data?.data.name}</Text>
 
           {/* Price */}
-          <Text style={styles.price}>${selectedProduct.price}</Text>
+          <Text style={styles.price}>${data?.data.price}</Text>
 
           {/* Description */}
-          <Text style={styles.description}>{selectedProduct.description}</Text>
+          <Text style={styles.description}>{data?.data.description}</Text>
         </View>
       </ScrollView>
       {/* Add to cart button */}
       <Pressable style={styles.button} onPress={addToCart}>
-        <Text style={styles.buttonText}>{`${selectedProduct.price} $`}</Text>
+        <Text style={styles.buttonText}>{`${data?.data.price} $`}</Text>
       </Pressable>
 
       <Pressable style={styles.icon} onPress={navigation.goBack}>

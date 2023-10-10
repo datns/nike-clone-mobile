@@ -1,29 +1,28 @@
 import React from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   ListRenderItem,
   Pressable,
   SafeAreaView,
   StyleSheet,
+  Text,
 } from 'react-native';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {Product} from '../types';
 import {MainStackParamList} from '../navigator/types';
-import {useAppDispatch, useAppSelector} from '../hooks';
-import {selectProduct, setSelectedProduct} from '../store/productSlice';
+import {useGetProductsQuery} from '../store/apiSlice';
 
 interface ProductsScreenProps
   extends NativeStackScreenProps<MainStackParamList, 'Products'> {}
 
 const ProductsScreen = ({navigation}: ProductsScreenProps) => {
-  const products = useAppSelector(selectProduct);
-  const dispatch = useAppDispatch();
+  const {data, isLoading, error} = useGetProductsQuery();
 
   const renderItem: ListRenderItem<Product> = ({item}) => {
     const onPress = () => {
-      dispatch(setSelectedProduct(item.id));
-      navigation.navigate('ProductDetail');
+      navigation.navigate('ProductDetail', {id: item._id});
     };
 
     return (
@@ -33,9 +32,17 @@ const ProductsScreen = ({navigation}: ProductsScreenProps) => {
     );
   };
 
+  if (isLoading) {
+    return <ActivityIndicator />;
+  }
+
+  if (error) {
+    return <Text>{JSON.stringify(error)}</Text>;
+  }
+
   return (
     <SafeAreaView>
-      <FlatList data={products} renderItem={renderItem} numColumns={2} />
+      <FlatList data={data?.data} renderItem={renderItem} numColumns={2} />
     </SafeAreaView>
   );
 };

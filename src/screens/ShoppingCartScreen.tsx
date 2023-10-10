@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Alert,
   FlatList,
   ListRenderItem,
   Pressable,
@@ -9,19 +10,23 @@ import {
 } from 'react-native';
 import {CartItem} from '../types';
 import CardListItem from '../components/CardListItem';
-import {useAppSelector} from '../hooks';
+import {useAppDispatch, useAppSelector} from '../hooks';
 import {
+  clear,
   selectCart,
   selectDeliveryPrice,
   selectSubtotal,
   selectTotal,
 } from '../store/cartSlice';
+import {useCreateOrderMutation} from '../store/apiSlice';
 
 const ShoppingCartScreen = () => {
   const cart = useAppSelector(selectCart);
   const subtotal = useAppSelector(selectSubtotal);
   const deliveryPrice = useAppSelector(selectDeliveryPrice);
   const total = useAppSelector(selectTotal);
+  const [createOrder, {data}] = useCreateOrderMutation();
+  const dispatch = useAppDispatch();
 
   const renderCartItem: ListRenderItem<CartItem> = ({item}) => {
     return <CardListItem cartItem={item} />;
@@ -30,6 +35,24 @@ const ShoppingCartScreen = () => {
   if (cart.items.length <= 0) {
     return <Text>Cart is empty!</Text>;
   }
+
+  const onCreateOrder = async () => {
+    try {
+      await createOrder({
+        items: cart.items,
+        subtotal,
+        deliveryPrice,
+        total,
+      });
+      if (data?.status === 'OK') {
+        Alert.alert(
+          'Order has been submitted',
+          `Your order reference is: ${data?.data.ref}`,
+        );
+        dispatch(clear());
+      }
+    } catch (e) {}
+  };
 
   return (
     <>
@@ -54,7 +77,7 @@ const ShoppingCartScreen = () => {
         )}
       />
       <View style={styles.footer}>
-        <Pressable style={styles.button}>
+        <Pressable style={styles.button} onPress={onCreateOrder}>
           <Text style={styles.buttonText}>Checkout</Text>
         </Pressable>
       </View>
